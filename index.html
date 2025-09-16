@@ -3,63 +3,109 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Neuron Clock Overlay</title>
+    <title>Neuron Clock Overlay - Cathedral ↔ WAGYU ↔ Play</title>
     <style>
+        :root {
+            --bg: #0a0f1c;
+            --panel: #111726;
+            --ink: #e6edf3;
+            --dim: #9aa7b4;
+            --line: #2b3347;
+            --accent: #7ff0d9;
+            --halo: rgba(127,240,217,.12);
+        }
+
         body {
             margin: 0;
-            padding: 40px;
-            background: linear-gradient(135deg, #1a1a2e, #16213e);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px;
+            background: var(--bg);
+            font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+            color: var(--ink);
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            color: #333;
         }
 
         .container {
             position: relative;
-            width: 600px;
+            width: 800px;
             height: 600px;
-            background: radial-gradient(circle, rgba(255,255,255,0.95) 0%, rgba(240,240,240,0.9) 100%);
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
-            backdrop-filter: blur(10px);
-            border: 2px solid rgba(255,255,255,0.2);
+            background: radial-gradient(circle, rgba(17,23,38,0.95) 0%, rgba(10,15,28,0.9) 100%);
+            border-radius: 16px;
+            border: 1px solid var(--line);
+            overflow: hidden;
         }
 
         .title {
             position: absolute;
-            top: 30px;
+            top: 24px;
             left: 50%;
             transform: translateX(-50%);
-            font-size: 20px;
-            font-weight: 600;
-            color: #2c3e50;
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--ink);
             text-align: center;
             z-index: 10;
         }
 
+        .controls {
+            position: absolute;
+            top: 24px;
+            right: 24px;
+            display: flex;
+            gap: 8px;
+            z-index: 10;
+        }
+
+        .toggle {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            color: var(--dim);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .toggle.active {
+            color: var(--accent);
+            border-color: var(--accent);
+            background: var(--halo);
+        }
+
+        .toggle:hover {
+            border-color: #3a4a67;
+        }
+
+        /* Clock circle - simple dashed */
         .clock-circle {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 380px;
-            height: 380px;
-            border: 3px dashed #7f8c8d;
+            width: 400px;
+            height: 400px;
+            border: 2px dashed var(--line);
             border-radius: 50%;
-            background: rgba(255,255,255,0.1);
+            opacity: 0.6;
         }
 
-        .center-node {
+        .clock-circle.rotating {
+            animation: rotate 20s linear infinite;
+        }
+
+        /* Soma - center node */
+        .soma {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 160px;
-            height: 160px;
-            background: linear-gradient(135deg, #f1c40f, #f39c12);
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(135deg, #f1c40f, #e67e22);
+            border: 3px solid var(--accent);
             border-radius: 50%;
             display: flex;
             flex-direction: column;
@@ -68,147 +114,224 @@
             text-align: center;
             font-weight: bold;
             color: #2c3e50;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-            border: 3px solid #e67e22;
+            box-shadow: 0 0 20px var(--halo);
             z-index: 5;
+            cursor: pointer;
+            transition: all 0.3s ease;
         }
 
-        .center-node .large-text {
-            font-size: 18px;
-            margin-bottom: 5px;
+        .soma:hover {
+            transform: translate(-50%, -50%) scale(1.05);
         }
 
-        .center-node .small-text {
-            font-size: 12px;
-            line-height: 1.2;
+        .soma .symbol {
+            font-size: 24px;
+            margin-bottom: 4px;
         }
 
-        .node {
+        .soma .desc {
+            font-size: 10px;
+            line-height: 1.1;
+        }
+
+        /* Afferent dendrites (inputs) */
+        .dendrite {
             position: absolute;
-            width: 140px;
-            height: 80px;
-            background: linear-gradient(135deg, #ecf0f1, #bdc3c7);
-            border: 2px solid #95a5a6;
+            width: 100px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--panel), #1a2332);
+            border: 2px solid var(--accent);
             border-radius: 8px;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             text-align: center;
-            font-size: 12px;
-            font-weight: 500;
-            color: #2c3e50;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--ink);
+            cursor: pointer;
             transition: all 0.3s ease;
         }
 
-        .node:hover {
+        .dendrite:hover {
             transform: scale(1.05);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
-            background: linear-gradient(135deg, #fff, #ecf0f1);
+            box-shadow: 0 0 15px var(--halo);
+            background: linear-gradient(135deg, #1a2332, var(--panel));
         }
 
-        .node .main-text {
-            font-size: 13px;
+        .dendrite .symbol {
+            font-size: 16px;
             font-weight: bold;
-            margin-bottom: 3px;
+            margin-bottom: 4px;
+            color: var(--accent);
         }
 
-        .node .sub-text {
-            font-size: 10px;
-            color: #7f8c8d;
+        .dendrite .desc {
+            font-size: 9px;
+            color: var(--dim);
+            line-height: 1.1;
         }
 
-        /* Position nodes around the circle */
-        .node-top {
+        /* Positions for dendrites */
+        .dendrite-12 {
             top: 80px;
             left: 50%;
             transform: translateX(-50%);
         }
 
-        .node-right {
-            right: 80px;
+        .dendrite-9 {
+            left: 100px;
             top: 50%;
             transform: translateY(-50%);
         }
 
-        .node-bottom {
+        .dendrite-6 {
             bottom: 80px;
             left: 50%;
             transform: translateX(-50%);
         }
 
-        .node-left {
-            left: 80px;
-            top: 50%;
-            transform: translateY(-50%);
-        }
-
-        /* Connection lines */
-        .connection {
+        /* Axon extending eastward */
+        .axon {
             position: absolute;
-            background: #7f8c8d;
-            opacity: 0.6;
-        }
-
-        .connection-top {
-            top: 160px;
-            left: 50%;
-            width: 2px;
-            height: 80px;
-            transform: translateX(-50%);
-        }
-
-        .connection-right {
-            right: 160px;
             top: 50%;
-            width: 80px;
-            height: 2px;
+            left: calc(50% + 60px);
+            width: 140px;
+            height: 6px;
+            background: linear-gradient(90deg, var(--accent), #8ab4ff);
+            border-radius: 3px;
+            transform: translateY(-50%);
+            opacity: 0.8;
+        }
+
+        .axon::before, .axon::after {
+            content: '';
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: var(--accent);
+            border-radius: 50%;
+            top: 50%;
             transform: translateY(-50%);
         }
 
-        .connection-bottom {
-            bottom: 160px;
-            left: 50%;
-            width: 2px;
-            height: 80px;
-            transform: translateX(-50%);
+        .axon::before {
+            left: 30px;
         }
 
-        .connection-left {
-            left: 160px;
+        .axon::after {
+            right: 30px;
+        }
+
+        /* θ' node - further east */
+        .theta-prime {
+            position: absolute;
+            right: 120px;
             top: 50%;
-            width: 80px;
-            height: 2px;
             transform: translateY(-50%);
+            width: 90px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--panel), #1a2332);
+            border: 2px solid #546a9a;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            font-size: 11px;
+            color: var(--ink);
+            cursor: pointer;
+            transition: all 0.3s ease;
         }
 
-        /* Subtle animations */
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
+        .theta-prime:hover {
+            transform: translateY(-50%) scale(1.05);
+            box-shadow: 0 0 15px rgba(84,106,154,0.3);
         }
 
-        .center-node {
-            animation: pulse 3s ease-in-out infinite;
+        .theta-prime .symbol {
+            font-size: 16px;
+            font-weight: bold;
+            color: #8ab4ff;
+            margin-bottom: 2px;
         }
 
+        .theta-prime .desc {
+            font-size: 9px;
+            color: var(--dim);
+            line-height: 1.1;
+        }
+
+        /* Connection wires */
+        .wire {
+            position: absolute;
+            background: var(--accent);
+            opacity: 0.4;
+            border-radius: 1px;
+        }
+
+        .wire-12 {
+            top: 140px;
+            left: calc(50% - 1px);
+            width: 2px;
+            height: 60px;
+        }
+
+        .wire-9 {
+            left: 200px;
+            top: calc(50% - 1px);
+            width: 60px;
+            height: 2px;
+        }
+
+        .wire-6 {
+            bottom: 140px;
+            left: calc(50% - 1px);
+            width: 2px;
+            height: 60px;
+        }
+
+        /* Animations */
         @keyframes rotate {
             from { transform: translate(-50%, -50%) rotate(0deg); }
             to { transform: translate(-50%, -50%) rotate(360deg); }
         }
 
-        .clock-circle::before {
-            content: '';
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .soma.active {
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        /* Info panel */
+        .info {
             position: absolute;
-            top: -3px;
-            left: -3px;
-            right: -3px;
-            bottom: -3px;
-            border: 1px dashed transparent;
-            border-radius: 50%;
-            background: linear-gradient(45deg, #3498db, transparent, #e74c3c, transparent);
-            animation: rotate 20s linear infinite;
+            bottom: 24px;
+            left: 24px;
+            right: 24px;
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 16px;
+            font-size: 12px;
+            color: var(--dim);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .info.show {
+            opacity: 1;
+        }
+
+        .info h4 {
+            color: var(--accent);
+            margin-bottom: 8px;
+            font-size: 13px;
         }
     </style>
 </head>
@@ -216,38 +339,108 @@
     <div class="container">
         <div class="title">Neuron Clock Overlay — Cathedral ↔ WAGYU ↔ Play</div>
         
-        <div class="clock-circle"></div>
+        <div class="controls">
+            <button class="toggle" id="clockToggle">Clock</button>
+            <button class="toggle" id="wiresToggle">Wires</button>
+            <button class="toggle active" id="dynamicToggle">Dynamic</button>
+        </div>
+
+        <!-- Simple clock circle -->
+        <div class="clock-circle" id="clockCircle"></div>
         
-        <div class="center-node">
-            <div class="large-text">AS</div>
-            <div class="small-text">Results/Survival<br>Yield (Y)<br>Cantabile</div>
+        <!-- Soma (center) -->
+        <div class="soma" id="soma">
+            <div class="symbol">ΔS</div>
+            <div class="desc">Results/Survival<br>Yield (Y)<br>Cantabile</div>
         </div>
         
-        <div class="node node-top">
-            <div class="main-text">h(t)</div>
-            <div class="sub-text">Methods/Play<br>Game (G)<br>Suspense</div>
+        <!-- Afferent dendrites (12, 9, 6 o'clock) -->
+        <div class="dendrite dendrite-12" data-info="h(t)">
+            <div class="symbol">h(t)</div>
+            <div class="desc">Methods/Play<br>Game (G)<br>Suspense</div>
         </div>
         
-        <div class="node node-right">
-            <div class="main-text">θ'</div>
-            <div class="sub-text">Conclude/Update<br>Update (U)<br>Da capo</div>
+        <div class="dendrite dendrite-9" data-info="sigma">
+            <div class="symbol">Σ</div>
+            <div class="desc">Background/Tent<br>App (A)<br>Release</div>
         </div>
         
-        <div class="node node-bottom">
-            <div class="main-text">θ</div>
-            <div class="sub-text">Table1/Cathedral<br>Website (W)<br>Tension</div>
+        <div class="dendrite dendrite-6" data-info="theta">
+            <div class="symbol">θ</div>
+            <div class="desc">Table1/Cathedral<br>Website (W)<br>Tension</div>
         </div>
-        
-        <div class="node node-left">
-            <div class="main-text">ξ</div>
-            <div class="sub-text">Background/Tent<br>App (A)<br>Release</div>
+
+        <!-- Axon extending east -->
+        <div class="axon" id="axon"></div>
+
+        <!-- θ' node (east of axon) -->
+        <div class="theta-prime" data-info="theta-prime">
+            <div class="symbol">θ'</div>
+            <div class="desc">Conclude/Update<br>Update (U)<br>Da capo</div>
         </div>
-        
-        <!-- Connection lines -->
-        <div class="connection connection-top"></div>
-        <div class="connection connection-right"></div>
-        <div class="connection connection-bottom"></div>
-        <div class="connection connection-left"></div>
+
+        <!-- Connection wires -->
+        <div class="wire wire-12" id="wire12"></div>
+        <div class="wire wire-9" id="wire9"></div>
+        <div class="wire wire-6" id="wire6"></div>
+
+        <!-- Info panel -->
+        <div class="info" id="infoPanel">
+            <h4>Neural Architecture</h4>
+            <p>Three afferent dendrites (h(t), Σ, θ) converge on soma (ΔS), signal travels via axon to terminal effector (θ'). Musical terms suggest temporal/rhythmic processing patterns.</p>
+        </div>
     </div>
+
+    <script>
+        const clockToggle = document.getElementById('clockToggle');
+        const wiresToggle = document.getElementById('wiresToggle');
+        const dynamicToggle = document.getElementById('dynamicToggle');
+        const clockCircle = document.getElementById('clockCircle');
+        const soma = document.getElementById('soma');
+        const wires = document.querySelectorAll('.wire');
+        const infoPanel = document.getElementById('infoPanel');
+
+        // Toggle functions
+        clockToggle.addEventListener('click', () => {
+            clockToggle.classList.toggle('active');
+            if (clockToggle.classList.contains('active')) {
+                clockCircle.style.opacity = '0.6';
+            } else {
+                clockCircle.style.opacity = '0';
+            }
+        });
+
+        wiresToggle.addEventListener('click', () => {
+            wiresToggle.classList.toggle('active');
+            const opacity = wiresToggle.classList.contains('active') ? '0.4' : '0';
+            wires.forEach(wire => wire.style.opacity = opacity);
+        });
+
+        dynamicToggle.addEventListener('click', () => {
+            dynamicToggle.classList.toggle('active');
+            if (dynamicToggle.classList.contains('active')) {
+                clockCircle.classList.add('rotating');
+                soma.classList.add('active');
+            } else {
+                clockCircle.classList.remove('rotating');
+                soma.classList.remove('active');
+            }
+        });
+
+        // Show info panel on hover
+        const interactives = document.querySelectorAll('.dendrite, .soma, .theta-prime');
+        interactives.forEach(el => {
+            el.addEventListener('mouseenter', () => {
+                infoPanel.classList.add('show');
+            });
+            el.addEventListener('mouseleave', () => {
+                infoPanel.classList.remove('show');
+            });
+        });
+
+        // Initialize - wires off by default, dynamic on
+        wires.forEach(wire => wire.style.opacity = '0');
+        clockCircle.style.opacity = '0';
+    </script>
 </body>
 </html>
