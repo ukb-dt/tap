@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neuron Clock Overlay</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 40px;
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            position: relative;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(255,255,255,0.95) 0%, rgba(240,240,240,0.9) 100%);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255,255,255,0.2);
+        }
+
+        .title {
+            position: absolute;
+            top: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 20px;
+            font-weight: 600;
+            color: #2c3e50;
+            text-align: center;
+            z-index: 10;
+        }
+
+        .clock-circle {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 380px;
+            height: 380px;
+            border: 3px dashed #7f8c8d;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.1);
+        }
+
+        .center-node {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 160px;
+            height: 160px;
+            background: linear-gradient(135deg, #f1c40f, #f39c12);
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            font-weight: bold;
+            color: #2c3e50;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            border: 3px solid #e67e22;
+            z-index: 5;
+        }
+
+        .center-node .large-text {
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+
+        .center-node .small-text {
+            font-size: 12px;
+            line-height: 1.2;
+        }
+
+        .node {
+            position: absolute;
+            width: 140px;
+            height: 80px;
+            background: linear-gradient(135deg, #ecf0f1, #bdc3c7);
+            border: 2px solid #95a5a6;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            font-size: 12px;
+            font-weight: 500;
+            color: #2c3e50;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+
+        .node:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+            background: linear-gradient(135deg, #fff, #ecf0f1);
+        }
+
+        .node .main-text {
+            font-size: 13px;
+            font-weight: bold;
+            margin-bottom: 3px;
+        }
+
+        .node .sub-text {
+            font-size: 10px;
+            color: #7f8c8d;
+        }
+
+        /* Position nodes around the circle */
+        .node-top {
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .node-right {
+            right: 80px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .node-bottom {
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .node-left {
+            left: 80px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        /* Connection lines */
+        .connection {
+            position: absolute;
+            background: #7f8c8d;
+            opacity: 0.6;
+        }
+
+        .connection-top {
+            top: 160px;
+            left: 50%;
+            width: 2px;
+            height: 80px;
+            transform: translateX(-50%);
+        }
+
+        .connection-right {
+            right: 160px;
+            top: 50%;
+            width: 80px;
+            height: 2px;
+            transform: translateY(-50%);
+        }
+
+        .connection-bottom {
+            bottom: 160px;
+            left: 50%;
+            width: 2px;
+            height: 80px;
+            transform: translateX(-50%);
+        }
+
+        .connection-left {
+            left: 160px;
+            top: 50%;
+            width: 80px;
+            height: 2px;
+            transform: translateY(-50%);
+        }
+
+        /* Subtle animations */
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .center-node {
+            animation: pulse 3s ease-in-out infinite;
+        }
+
+        @keyframes rotate {
+            from { transform: translate(-50%, -50%) rotate(0deg); }
+            to { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        .clock-circle::before {
+            content: '';
+            position: absolute;
+            top: -3px;
+            left: -3px;
+            right: -3px;
+            bottom: -3px;
+            border: 1px dashed transparent;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #3498db, transparent, #e74c3c, transparent);
+            animation: rotate 20s linear infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="title">Neuron Clock Overlay — Cathedral ↔ WAGYU ↔ Play</div>
+        
+        <div class="clock-circle"></div>
+        
+        <div class="center-node">
+            <div class="large-text">AS</div>
+            <div class="small-text">Results/Survival<br>Yield (Y)<br>Cantabile</div>
+        </div>
+        
+        <div class="node node-top">
+            <div class="main-text">h(t)</div>
+            <div class="sub-text">Methods/Play<br>Game (G)<br>Suspense</div>
+        </div>
+        
+        <div class="node node-right">
+            <div class="main-text">θ'</div>
+            <div class="sub-text">Conclude/Update<br>Update (U)<br>Da capo</div>
+        </div>
+        
+        <div class="node node-bottom">
+            <div class="main-text">θ</div>
+            <div class="sub-text">Table1/Cathedral<br>Website (W)<br>Tension</div>
+        </div>
+        
+        <div class="node node-left">
+            <div class="main-text">ξ</div>
+            <div class="sub-text">Background/Tent<br>App (A)<br>Release</div>
+        </div>
+        
+        <!-- Connection lines -->
+        <div class="connection connection-top"></div>
+        <div class="connection connection-right"></div>
+        <div class="connection connection-bottom"></div>
+        <div class="connection connection-left"></div>
+    </div>
+</body>
+</html>
