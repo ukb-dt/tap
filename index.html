@@ -1,446 +1,519 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Neuron Clock Overlay - Cathedral ↔ WAGYU ↔ Play</title>
-    <style>
-        :root {
-            --bg: #0a0f1c;
-            --panel: #111726;
-            --ink: #e6edf3;
-            --dim: #9aa7b4;
-            --line: #2b3347;
-            --accent: #7ff0d9;
-            --halo: rgba(127,240,217,.12);
-        }
-
-        body {
-            margin: 0;
-            padding: 20px;
-            background: var(--bg);
-            font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-            color: var(--ink);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-        }
-
-        .container {
-            position: relative;
-            width: 800px;
-            height: 600px;
-            background: radial-gradient(circle, rgba(17,23,38,0.95) 0%, rgba(10,15,28,0.9) 100%);
-            border-radius: 16px;
-            border: 1px solid var(--line);
-            overflow: hidden;
-        }
-
-        .title {
-            position: absolute;
-            top: 24px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 16px;
-            font-weight: 700;
-            color: var(--ink);
-            text-align: center;
-            z-index: 10;
-        }
-
-        .controls {
-            position: absolute;
-            top: 24px;
-            right: 24px;
-            display: flex;
-            gap: 8px;
-            z-index: 10;
-        }
-
-        .toggle {
-            background: var(--panel);
-            border: 1px solid var(--line);
-            color: var(--dim);
-            padding: 6px 12px;
-            border-radius: 6px;
-            font-size: 12px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .toggle.active {
-            color: var(--accent);
-            border-color: var(--accent);
-            background: var(--halo);
-        }
-
-        .toggle:hover {
-            border-color: #3a4a67;
-        }
-
-        /* Clock circle - simple dashed */
-        .clock-circle {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 400px;
-            height: 400px;
-            border: 2px dashed var(--line);
-            border-radius: 50%;
-            opacity: 0.6;
-        }
-
-        .clock-circle.rotating {
-            animation: rotate 20s linear infinite;
-        }
-
-        /* Soma - center node */
-        .soma {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 120px;
-            height: 120px;
-            background: linear-gradient(135deg, #f1c40f, #e67e22);
-            border: 3px solid var(--accent);
-            border-radius: 50%;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            font-weight: bold;
-            color: #2c3e50;
-            box-shadow: 0 0 20px var(--halo);
-            z-index: 5;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .soma:hover {
-            transform: translate(-50%, -50%) scale(1.05);
-        }
-
-        .soma .symbol {
-            font-size: 24px;
-            margin-bottom: 4px;
-        }
-
-        .soma .desc {
-            font-size: 10px;
-            line-height: 1.1;
-        }
-
-        /* Afferent dendrites (inputs) */
-        .dendrite {
-            position: absolute;
-            width: 100px;
-            height: 60px;
-            background: linear-gradient(135deg, var(--panel), #1a2332);
-            border: 2px solid var(--accent);
-            border-radius: 8px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            font-size: 11px;
-            font-weight: 600;
-            color: var(--ink);
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .dendrite:hover {
-            transform: scale(1.05);
-            box-shadow: 0 0 15px var(--halo);
-            background: linear-gradient(135deg, #1a2332, var(--panel));
-        }
-
-        .dendrite .symbol {
-            font-size: 16px;
-            font-weight: bold;
-            margin-bottom: 4px;
-            color: var(--accent);
-        }
-
-        .dendrite .desc {
-            font-size: 9px;
-            color: var(--dim);
-            line-height: 1.1;
-        }
-
-        /* Positions for dendrites */
-        .dendrite-12 {
-            top: 80px;
-            left: 50%;
-            transform: translateX(-50%);
-        }
-
-        .dendrite-9 {
-            left: 100px;
-            top: 50%;
-            transform: translateY(-50%);
-        }
-
-        .dendrite-6 {
-            bottom: 80px;
-            left: 50%;
-            transform: translateX(-50%);
-        }
-
-        /* Axon extending eastward */
-        .axon {
-            position: absolute;
-            top: 50%;
-            left: calc(50% + 60px);
-            width: 140px;
-            height: 6px;
-            background: linear-gradient(90deg, var(--accent), #8ab4ff);
-            border-radius: 3px;
-            transform: translateY(-50%);
-            opacity: 0.8;
-        }
-
-        .axon::before, .axon::after {
-            content: '';
-            position: absolute;
-            width: 4px;
-            height: 4px;
-            background: var(--accent);
-            border-radius: 50%;
-            top: 50%;
-            transform: translateY(-50%);
-        }
-
-        .axon::before {
-            left: 30px;
-        }
-
-        .axon::after {
-            right: 30px;
-        }
-
-        /* θ' node - further east */
-        .theta-prime {
-            position: absolute;
-            right: 120px;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 90px;
-            height: 50px;
-            background: linear-gradient(135deg, var(--panel), #1a2332);
-            border: 2px solid #546a9a;
-            border-radius: 8px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            font-size: 11px;
-            color: var(--ink);
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .theta-prime:hover {
-            transform: translateY(-50%) scale(1.05);
-            box-shadow: 0 0 15px rgba(84,106,154,0.3);
-        }
-
-        .theta-prime .symbol {
-            font-size: 16px;
-            font-weight: bold;
-            color: #8ab4ff;
-            margin-bottom: 2px;
-        }
-
-        .theta-prime .desc {
-            font-size: 9px;
-            color: var(--dim);
-            line-height: 1.1;
-        }
-
-        /* Connection wires */
-        .wire {
-            position: absolute;
-            background: var(--accent);
-            opacity: 0.4;
-            border-radius: 1px;
-        }
-
-        .wire-12 {
-            top: 140px;
-            left: calc(50% - 1px);
-            width: 2px;
-            height: 60px;
-        }
-
-        .wire-9 {
-            left: 200px;
-            top: calc(50% - 1px);
-            width: 60px;
-            height: 2px;
-        }
-
-        .wire-6 {
-            bottom: 140px;
-            left: calc(50% - 1px);
-            width: 2px;
-            height: 60px;
-        }
-
-        /* Animations */
-        @keyframes rotate {
-            from { transform: translate(-50%, -50%) rotate(0deg); }
-            to { transform: translate(-50%, -50%) rotate(360deg); }
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
-        }
-
-        .soma.active {
-            animation: pulse 2s ease-in-out infinite;
-        }
-
-        /* Info panel */
-        .info {
-            position: absolute;
-            bottom: 24px;
-            left: 24px;
-            right: 24px;
-            background: var(--panel);
-            border: 1px solid var(--line);
-            border-radius: 8px;
-            padding: 16px;
-            font-size: 12px;
-            color: var(--dim);
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .info.show {
-            opacity: 1;
-        }
-
-        .info h4 {
-            color: var(--accent);
-            margin-bottom: 8px;
-            font-size: 13px;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Neuron Clock Overlay - Cathedral ↔ WAGYU ↔ Play</title>
+<style>
+:root {
+  --bg: #0a0f1c;
+  --panel: #111726;
+  --ink: #e6edf3;
+  --dim: #9aa7b4;
+  --line: #2b3347;
+  --accent: #7ff0d9;
+  --halo: rgba(127,240,217,.12);
+}
+body {
+  margin: 0;
+  padding: 20px;
+  background: var(--bg);
+  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  color: var(--ink);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+.container {
+  position: relative;
+  width: 800px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(17,23,38,0.95) 0%, rgba(10,15,28,0.9) 100%);
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  overflow: hidden;
+}
+.title {
+  position: absolute;
+  top: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ink);
+  text-align: center;
+  z-index: 10;
+}
+.controls {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  display: flex;
+  gap: 8px;
+  z-index: 10;
+}
+.toggle {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  color: var(--dim);
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.toggle.active {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: var(--halo);
+}
+.toggle:hover {
+  border-color: #3a4a67;
+}
+/* Clock circle - simple dashed */
+.clock-circle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 400px;
+  height: 400px;
+  border: 2px dashed var(--line);
+  border-radius: 50%;
+  opacity: 0.6;
+}
+.clock-circle.rotating {
+  animation: rotate 20s linear infinite;
+}
+/* Soma - center node */
+.soma {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 120px;
+  height: 120px;
+  background: linear-gradient(135deg, #f1c40f, #e67e22);
+  border: 3px solid var(--accent);
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  font-weight: bold;
+  color: #2c3e50;
+  box-shadow: 0 0 20px var(--halo);
+  z-index: 5;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+.soma:hover {
+  transform: translate(-50%, -50%) scale(1.05);
+}
+.soma .symbol {
+  font-size: 24px;
+  margin-bottom: 4px;
+}
+.soma .desc {
+  font-size: 10px;
+  line-height: 1.1;
+}
+/* Afferent dendrites (inputs) */
+.dendrite {
+  position: absolute;
+  width: 100px;
+  height: 60px;
+  background: linear-gradient(135deg, var(--panel), #1a2332);
+  border: 2px solid var(--accent);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+.dendrite:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 15px var(--halo);
+  background: linear-gradient(135deg, #1a2332, var(--panel));
+}
+.dendrite .symbol {
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 4px;
+  color: var(--accent);
+}
+.dendrite .desc {
+  font-size: 9px;
+  color: var(--dim);
+  line-height: 1.1;
+}
+/* Positions for dendrites */
+.dendrite-12 {
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+.dendrite-9 {
+  left: 100px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+.dendrite-6 {
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+/* Axon extending eastward */
+.axon {
+  position: absolute;
+  top: 50%;
+  left: calc(50% + 60px);
+  width: 140px;
+  height: 6px;
+  background: linear-gradient(90deg, var(--accent), #8ab4ff);
+  border-radius: 3px;
+  transform: translateY(-50%);
+  opacity: 0.8;
+}
+.axon::before, .axon::after {
+  content: '';
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: var(--accent);
+  border-radius: 50%;
+  top: 50%;
+  transform: translateY(-50%);
+}
+.axon::before {
+  left: 30px;
+}
+.axon::after {
+  right: 30px;
+}
+/* θ' node - further east */
+.theta-prime {
+  position: absolute;
+  right: 120px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 90px;
+  height: 50px;
+  background: linear-gradient(135deg, var(--panel), #1a2332);
+  border: 2px solid #546a9a;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  font-size: 11px;
+  color: var(--ink);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+.theta-prime:hover {
+  transform: translateY(-50%) scale(1.05);
+  box-shadow: 0 0 15px rgba(84,106,154,0.3);
+}
+.theta-prime .symbol {
+  font-size: 16px;
+  font-weight: bold;
+  color: #8ab4ff;
+  margin-bottom: 2px;
+}
+.theta-prime .desc {
+  font-size: 9px;
+  color: var(--dim);
+  line-height: 1.1;
+}
+/* Connection wires */
+.wire {
+  position: absolute;
+  background: var(--accent);
+  opacity: 0.4;
+  border-radius: 1px;
+}
+.wire-12 {
+  top: 140px;
+  left: calc(50% - 1px);
+  width: 2px;
+  height: 60px;
+}
+.wire-9 {
+  left: 200px;
+  top: calc(50% - 1px);
+  width: 60px;
+  height: 2px;
+}
+.wire-6 {
+  bottom: 140px;
+  left: calc(50% - 1px);
+  width: 2px;
+  height: 60px;
+}
+/* Animations */
+@keyframes rotate {
+  from {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+.soma.active {
+  animation: pulse 2s ease-in-out infinite;
+}
+/* Info panel */
+.info {
+  position: absolute;
+  bottom: 24px;
+  left: 24px;
+  right: 24px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 16px;
+  font-size: 12px;
+  color: var(--dim);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.info.show {
+  opacity: 1;
+}
+.info h4 {
+  color: var(--accent);
+  margin-bottom: 8px;
+  font-size: 13px;
+}
+/* Modal for detailed entrances */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0,0,0,0.8);
+}
+.modal-content {
+  background-color: var(--panel);
+  margin: 5% auto;
+  padding: 40px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  width: 80%;
+  max-width: 800px;
+  max-height: 80%;
+  overflow-y: auto;
+  color: var(--ink);
+  position: relative;
+}
+.close {
+  color: var(--dim);
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+.close:hover {
+  color: var(--accent);
+}
+.modal h2 {
+  color: var(--accent);
+  margin-top: 0;
+  font-size: 24px;
+}
+.modal p {
+  line-height: 1.6;
+  font-size: 16px;
+}
+</style>
 </head>
 <body>
-    <div class="container">
-        <div class="title">Neuron Clock Overlay — Cathedral ↔ WAGYU ↔ Play</div>
-        
-        <div class="controls">
-            <button class="toggle" id="clockToggle">Clock</button>
-            <button class="toggle" id="wiresToggle">Wires</button>
-            <button class="toggle active" id="dynamicToggle">Dynamic</button>
-        </div>
+<div class="container">
+<div class="title">Neuron Clock Overlay — Cathedral ↔ WAGYU ↔ Play</div>
+<div class="controls">
+<button class="toggle" id="clockToggle">Clock</button>
+<button class="toggle" id="wiresToggle">Wires</button>
+<button class="toggle active" id="dynamicToggle">Dynamic</button>
+</div>
+<!-- Simple clock circle -->
+<div class="clock-circle" id="clockCircle"></div>
+<!-- Soma (center) -->
+<div class="soma" id="soma" data-modal="enterprise">
+<div class="symbol">ΔS</div>
+<div class="desc">Results/Survival<br>Yield (Y)<br>Cantabile</div>
+</div>
+<!-- Afferent dendrites (12, 9, 6 o'clock) -->
+<div class="dendrite dendrite-12" data-info="h(t)" data-modal="animal">
+<div class="symbol">h(t)</div>
+<div class="desc">Methods/Play<br>Game (G)<br>Suspense</div>
+</div>
+<div class="dendrite dendrite-9" data-info="sigma" data-modal="botanical">
+<div class="symbol">Σ</div>
+<div class="desc">Background/Tent<br>App (A)<br>Release</div>
+</div>
+<div class="dendrite dendrite-6" data-info="theta" data-modal="preplant">
+<div class="symbol">θ</div>
+<div class="desc">Table1/Cathedral<br>Website (W)<br>Tension</div>
+</div>
+<!-- Axon extending east -->
+<div class="axon" id="axon"></div>
+<!-- θ' node (east of axon) -->
+<div class="theta-prime" data-info="theta-prime" data-modal="system">
+<div class="symbol">θ'</div>
+<div class="desc">Conclude/Update<br>Update (U)<br>Da capo</div>
+</div>
+<!-- Connection wires -->
+<div class="wire wire-12" id="wire12"></div>
+<div class="wire wire-9" id="wire9"></div>
+<div class="wire wire-6" id="wire6"></div>
+<!-- Info panel -->
+<div class="info" id="infoPanel">
+<h4>Neural Architecture</h4>
+<p>Three afferent dendrites (h(t), Σ, θ) converge on soma (ΔS), signal travels via axon to terminal effector (θ'). Musical terms suggest temporal/rhythmic processing patterns.</p>
+</div>
+</div>
 
-        <!-- Simple clock circle -->
-        <div class="clock-circle" id="clockCircle"></div>
-        
-        <!-- Soma (center) -->
-        <div class="soma" id="soma">
-            <div class="symbol">ΔS</div>
-            <div class="desc">Results/Survival<br>Yield (Y)<br>Cantabile</div>
-        </div>
-        
-        <!-- Afferent dendrites (12, 9, 6 o'clock) -->
-        <div class="dendrite dendrite-12" data-info="h(t)">
-            <div class="symbol">h(t)</div>
-            <div class="desc">Methods/Play<br>Game (G)<br>Suspense</div>
-        </div>
-        
-        <div class="dendrite dendrite-9" data-info="sigma">
-            <div class="symbol">Σ</div>
-            <div class="desc">Background/Tent<br>App (A)<br>Release</div>
-        </div>
-        
-        <div class="dendrite dendrite-6" data-info="theta">
-            <div class="symbol">θ</div>
-            <div class="desc">Table1/Cathedral<br>Website (W)<br>Tension</div>
-        </div>
+<!-- Modals for detailed entrances -->
+<div id="preplant" class="modal">
+<div class="modal-content">
+<span class="close">&times;</span>
+<h2>Preplant: Mycellia and Biological Forms</h2>
+<p>In the shadowed depths before the Earth's surface was conquered by life, mycellia wove the foundational tapestry of existence. These subterranean networks, vast and unseen, orchestrated the alchemy of minerals and decay, birthing the precursors to all terrestrial vitality. Fungal threads infiltrated rock and soil, engineering symbiotic exchanges that prefigured photosynthesis, harnessing geothermal whispers and chemical gradients to defy entropy's pull. Here, in this preplant epoch, biological forms emerged not as conquerors but as quiet architects, sculpting the planet's crust into a living substrate, a decentralized intelligence pulsing through rhizomatic veins, awaiting the verdant uprising that would claim the sun.</p>
+</div>
+</div>
 
-        <!-- Axon extending east -->
-        <div class="axon" id="axon"></div>
+<div id="botanical" class="modal">
+<div class="modal-content">
+<span class="close">&times;</span>
+<h2>Botanical: The First Conqueror</h2>
+<p>The botanical phase marked the dawn of conquest, as photosynthetic pioneers breached the surface, transforming Earth's barren skin into a verdant empire. These silent revolutionaries, rooted in mycorrhizal alliances, tapped directly into the star's unyielding fire, channeling solar fury into chemical bonds that fueled an explosive proliferation. This was no mere adaptation but a paradigm shift: from chemotrophic scavenging in the dark to heliotrophic dominion, where chloroplasts became the engines of ecosystems. Leaves unfurled like banners of rebellion, stems pierced the veil of atmosphere, and roots delved deeper into the mycchial web, decentralizing energy flow across continents. In this green tide, life learned to harvest the cosmos, birthing complexity from light, and setting the stage for the animal interludes to come.</p>
+</div>
+</div>
 
-        <!-- θ' node (east of axon) -->
-        <div class="theta-prime" data-info="theta-prime">
-            <div class="symbol">θ'</div>
-            <div class="desc">Conclude/Update<br>Update (U)<br>Da capo</div>
-        </div>
+<div id="animal" class="modal">
+<div class="modal-content">
+<span class="close">&times;</span>
+<h2>Animal: Arrival in a Networked World</h2>
+<p>Animals arrived as interlopers in a realm already humming with rich, networked, decentralized intelligence—the botanical-mycchial lattice that spanned horizons without hierarchy. Mobility seemed almost superfluous in this preordained symphony, where sustenance dangled from branches and nutrients cycled through soil symphonies. Yet, the imperative of dispersal and recursion stirred the first tentative steps: creatures evolved not for predation's sake but to ferry fruit and seed across windswept expanses, ensuring the ecosystem's eternal renewal. Man, in this narrative, emerges not as destiny's heir but as a tenuous bridge between beast and übermensch—a fleeting vector for propagation, his consciousness a spark amid the rhizome's quiet wisdom, reminding us that true mastery lies in the web, not the wanderer.</p>
+</div>
+</div>
 
-        <!-- Connection wires -->
-        <div class="wire wire-12" id="wire12"></div>
-        <div class="wire wire-9" id="wire9"></div>
-        <div class="wire wire-6" id="wire6"></div>
+<div id="enterprise" class="modal">
+<div class="modal-content">
+<span class="close">&times;</span>
+<h2>Enterprise: Splicing Inputs at the Soma</h2>
+<p>At the soma, the enterprise unfolds as a masterful splice of disparate inputs, forging coherence from chaos. From the preplant bowels of Earth rise inanimate treasures—hydrocarbons pulsing with ancient solar ghosts, plastics forged in molecular crucibles, minerals etched by eons—raw vectors of energy and form. Botanical bounty cascades in: grains for sustenance, fibers for industry, leaves for medicine, roots for resilience, all transmuted through cultivation's alchemy. Animals contribute their vital chorus: flesh for nourishment, companionship in pets, labor in herds, stewardship in veterinary arts and vast farms, their behaviors a mirror to our own domestication. Human resources—or more precisely, clients—infuse the flux with intentionality, their needs and innovations threading through the weave. Here, at this neural nexus bridging to the axon at 3 o'clock, N-terminal dendrites and effectors orchestrate the symphony, distilling multiplicity into a unified signal: yield as emergence, survival as synthesis.</p>
+</div>
+</div>
 
-        <!-- Info panel -->
-        <div class="info" id="infoPanel">
-            <h4>Neural Architecture</h4>
-            <p>Three afferent dendrites (h(t), Σ, θ) converge on soma (ΔS), signal travels via axon to terminal effector (θ'). Musical terms suggest temporal/rhythmic processing patterns.</p>
-        </div>
-    </div>
+<div id="system" class="modal">
+<div class="modal-content">
+<span class="close">&times;</span>
+<h2>System: The Axonal Efflux</h2>
+<p>The system at 3 o'clock embodies the axonal terminus, where the soma's spliced signal erupts into structured output, effectors deploying the refined intelligence toward perpetual recursion. This is the übermensch's forge: Nietzschean updates etched in Aeschylean script, where θ' resolves the pentad's tensions into emergent architectures—systems that self-propagate, adapt, and transcend. From enterprise's bounty flows the machinery of civilization: technological scaffolds amplifying biological legacies, economic webs mirroring mycchial networks, cultural narratives echoing botanical conquests. Yet, in this efflux, recursion loops back across the synaptic cleft, feeding θ at 6 o'clock with evolved parameters, ensuring the clock's eternal turn—not as linear progress, but as a da capo of deepening complexity, where man bridges to machine, animal to algorithm, in the grand play of cathedral and wagyu.</p>
+</div>
+</div>
 
-    <script>
-        const clockToggle = document.getElementById('clockToggle');
-        const wiresToggle = document.getElementById('wiresToggle');
-        const dynamicToggle = document.getElementById('dynamicToggle');
-        const clockCircle = document.getElementById('clockCircle');
-        const soma = document.getElementById('soma');
-        const wires = document.querySelectorAll('.wire');
-        const infoPanel = document.getElementById('infoPanel');
+<script>
+const clockToggle = document.getElementById('clockToggle');
+const wiresToggle = document.getElementById('wiresToggle');
+const dynamicToggle = document.getElementById('dynamicToggle');
+const clockCircle = document.getElementById('clockCircle');
+const soma = document.getElementById('soma');
+const wires = document.querySelectorAll('.wire');
+const infoPanel = document.getElementById('infoPanel');
 
-        // Toggle functions
-        clockToggle.addEventListener('click', () => {
-            clockToggle.classList.toggle('active');
-            if (clockToggle.classList.contains('active')) {
-                clockCircle.style.opacity = '0.6';
-            } else {
-                clockCircle.style.opacity = '0';
-            }
-        });
+// Toggle functions
+clockToggle.addEventListener('click', () => {
+  clockToggle.classList.toggle('active');
+  if (clockToggle.classList.contains('active')) {
+    clockCircle.style.opacity = '0.6';
+  } else {
+    clockCircle.style.opacity = '0';
+  }
+});
 
-        wiresToggle.addEventListener('click', () => {
-            wiresToggle.classList.toggle('active');
-            const opacity = wiresToggle.classList.contains('active') ? '0.4' : '0';
-            wires.forEach(wire => wire.style.opacity = opacity);
-        });
+wiresToggle.addEventListener('click', () => {
+  wiresToggle.classList.toggle('active');
+  const opacity = wiresToggle.classList.contains('active') ? '0.4' : '0';
+  wires.forEach(wire => wire.style.opacity = opacity);
+});
 
-        dynamicToggle.addEventListener('click', () => {
-            dynamicToggle.classList.toggle('active');
-            if (dynamicToggle.classList.contains('active')) {
-                clockCircle.classList.add('rotating');
-                soma.classList.add('active');
-            } else {
-                clockCircle.classList.remove('rotating');
-                soma.classList.remove('active');
-            }
-        });
+dynamicToggle.addEventListener('click', () => {
+  dynamicToggle.classList.toggle('active');
+  if (dynamicToggle.classList.contains('active')) {
+    clockCircle.classList.add('rotating');
+    soma.classList.add('active');
+  } else {
+    clockCircle.classList.remove('rotating');
+    soma.classList.remove('active');
+  }
+});
 
-        // Show info panel on hover
-        const interactives = document.querySelectorAll('.dendrite, .soma, .theta-prime');
-        interactives.forEach(el => {
-            el.addEventListener('mouseenter', () => {
-                infoPanel.classList.add('show');
-            });
-            el.addEventListener('mouseleave', () => {
-                infoPanel.classList.remove('show');
-            });
-        });
+// Show info panel on hover
+const interactives = document.querySelectorAll('.dendrite, .soma, .theta-prime');
+interactives.forEach(el => {
+  el.addEventListener('mouseenter', () => {
+    infoPanel.classList.add('show');
+  });
+  el.addEventListener('mouseleave', () => {
+    infoPanel.classList.remove('show');
+  });
+});
 
-        // Initialize - wires off by default, dynamic on
-        wires.forEach(wire => wire.style.opacity = '0');
-        clockCircle.style.opacity = '0';
-    </script>
+// Modal functionality
+const modals = document.querySelectorAll('.modal');
+const modalToggles = document.querySelectorAll('[data-modal]');
+
+modalToggles.forEach(toggle => {
+  toggle.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const modalId = toggle.dataset.modal;
+    const modal = document.getElementById(modalId);
+    if (modal) {
+      modal.style.display = 'block';
+    }
+  });
+});
+
+modals.forEach(modal => {
+  const closeBtn = modal.querySelector('.close');
+  closeBtn.addEventListener('click', () => {
+    modal.style.display = 'none';
+  });
+  window.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      modal.style.display = 'none';
+    }
+  });
+});
+
+// Initialize - wires off by default, dynamic on
+wires.forEach(wire => wire.style.opacity = '0');
+clockCircle.style.opacity = '0';
+</script>
 </body>
 </html>
